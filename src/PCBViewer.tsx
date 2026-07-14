@@ -11,7 +11,10 @@ import { compose, scale, translate } from "transformation-matrix"
 import useMouseMatrixTransform from "use-mouse-matrix-transform"
 import { CanvasElementsRenderer } from "./components/CanvasElementsRenderer"
 import type { BoundsSelection } from "./components/DimensionOverlay"
+import { PcbToolModeController } from "./components/PcbToolModeController"
+import type { PcbViewerStore } from "./components/ContextProviders"
 import type { ManualEditEvent } from "@tscircuit/props"
+import type { PcbToolMode } from "./lib/pcb-tool-mode"
 import { zIndexMap } from "lib/util/z-index-map"
 import { calculateCircuitJsonKey } from "lib/calculate-circuit-json-key"
 import { calculateBoardSizeKey } from "lib/calculate-board-size-key"
@@ -30,6 +33,14 @@ type Props = {
   clickToInteractEnabled?: boolean
   debugGraphics?: GraphicsObject | null
   disablePcbGroups?: boolean
+  /** Host-controlled tool (mirrors schematic-viewer `toolMode`). */
+  toolMode?: PcbToolMode
+  /** When true, hides the built-in context-menu toolbar overlay. */
+  hideBuiltinToolbar?: boolean
+  /** Called once the internal zustand store is ready. */
+  onStoreReady?: (store: PcbViewerStore) => void
+  /** When false, canvas pan is disabled while a drawing tool is active. */
+  allowCanvasPan?: boolean
 }
 
 export const PCBViewer = ({
@@ -44,6 +55,10 @@ export const PCBViewer = ({
   focusOnHover = false,
   clickToInteractEnabled = false,
   disablePcbGroups = false,
+  toolMode = "select",
+  hideBuiltinToolbar = false,
+  onStoreReady,
+  allowCanvasPan = true,
 }: Props) => {
   const [isInteractionEnabled, setIsInteractionEnabled] = useState(
     !clickToInteractEnabled,
@@ -173,8 +188,14 @@ export const PCBViewer = ({
         <ContextProviders
           initialState={mergedInitialState}
           disablePcbGroups={disablePcbGroups}
+          onStoreReady={onStoreReady}
         >
+          <PcbToolModeController
+            toolMode={toolMode}
+            allowCanvasPan={allowCanvasPan}
+          />
           <CanvasElementsRenderer
+            hideBuiltinToolbar={hideBuiltinToolbar}
             key={refDimensions.width}
             transform={transform}
             setTransform={setTransform}

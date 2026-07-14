@@ -45,10 +45,11 @@ export interface CanvasElementsRendererProps {
   cancelPanDrag: () => void
   onCreateEditEvent: (event: ManualEditEvent) => void
   onModifyEditEvent: (event: Partial<ManualEditEvent>) => void
+  hideBuiltinToolbar?: boolean
 }
 
 export const CanvasElementsRenderer = (props: CanvasElementsRendererProps) => {
-  const { transform, elements } = props
+  const { transform, elements, hideBuiltinToolbar = false } = props
   const { hoveredErrorId, focusedErrorId, isShowingCopperPours } =
     useGlobalStore((state) => ({
       hoveredErrorId: state.hovered_error_id,
@@ -257,7 +258,7 @@ export const CanvasElementsRenderer = (props: CanvasElementsRendererProps) => {
             onBoundsSelected={props.onBoundsSelected}
             cancelPanDrag={props.cancelPanDrag}
           >
-            <ToolbarOverlay elements={elements}>
+            {hideBuiltinToolbar ? (
               <ErrorOverlay transform={transform} elements={elements}>
                 <RatsNestOverlay transform={transform} soup={elements}>
                   <PcbGroupOverlay
@@ -286,7 +287,38 @@ export const CanvasElementsRenderer = (props: CanvasElementsRendererProps) => {
                   </PcbGroupOverlay>
                 </RatsNestOverlay>
               </ErrorOverlay>
-            </ToolbarOverlay>
+            ) : (
+              <ToolbarOverlay elements={elements}>
+                <ErrorOverlay transform={transform} elements={elements}>
+                  <RatsNestOverlay transform={transform} soup={elements}>
+                    <PcbGroupOverlay
+                      transform={transform}
+                      elements={elements}
+                      hoveredComponentIds={hoveredComponentIds}
+                    >
+                      <DebugGraphicsOverlay
+                        transform={transform}
+                        debugGraphics={props.debugGraphics}
+                      >
+                        <WarningGraphicsOverlay
+                          transform={transform}
+                          elements={elements}
+                        >
+                          <CanvasPrimitiveRenderer
+                            transform={transform}
+                            primitives={primitives}
+                            elements={elementsToRender}
+                            width={props.width}
+                            height={props.height}
+                            grid={props.grid}
+                          />
+                        </WarningGraphicsOverlay>
+                      </DebugGraphicsOverlay>
+                    </PcbGroupOverlay>
+                  </RatsNestOverlay>
+                </ErrorOverlay>
+              </ToolbarOverlay>
+            )}
           </DimensionOverlay>
         </EditTraceHintOverlay>
       </EditPlacementOverlay>
