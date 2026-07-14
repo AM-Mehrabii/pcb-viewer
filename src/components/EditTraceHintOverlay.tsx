@@ -15,6 +15,7 @@ import {
 } from "transformation-matrix"
 import { HotkeyActionMenu } from "./HotkeyActionMenu"
 import { useToast } from "lib/toast"
+import { getPortNetId, portsShareNet } from "lib/get-port-net-id"
 import { zIndexMap } from "lib/util/z-index-map"
 import type { EditTraceHintEvent } from "@tscircuit/props"
 
@@ -214,6 +215,34 @@ export const EditTraceHintOverlay = ({
             }
           }
         } else {
+          for (const e of soup) {
+            if (
+              (e.type === "pcb_smtpad" &&
+                isInsideOfSmtpad(e, rwMousePoint, 10 / transform.a)) ||
+              (e.type === "pcb_plated_hole" &&
+                isInsideOfPlatedHole(e, rwMousePoint, 10 / transform.a))
+            ) {
+              if (!e.pcb_port_id || !dragState?.editEvent.pcb_port_id) return
+              if (
+                !portsShareNet(
+                  soup,
+                  dragState.editEvent.pcb_port_id,
+                  e.pcb_port_id,
+                )
+              ) {
+                toast.error("Cannot connect pads on different nets")
+                return
+              }
+              cancelPanDrag()
+              onCreateEditEvent({
+                ...dragState.editEvent,
+                in_progress: false,
+              })
+              setDragState(null)
+              setSelectedElement(null)
+              return
+            }
+          }
           setDragState({
             ...(dragState as any),
             dragStart: rwMousePoint,

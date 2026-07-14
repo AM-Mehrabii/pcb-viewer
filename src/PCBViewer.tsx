@@ -41,6 +41,8 @@ type Props = {
   onStoreReady?: (store: PcbViewerStore) => void
   /** When false, canvas pan is disabled while a drawing tool is active. */
   allowCanvasPan?: boolean
+  /** Pan/zoom + highlight this pcb_component_id (from host find panel). */
+  spotlightComponentId?: string | null
 }
 
 export const PCBViewer = ({
@@ -59,6 +61,7 @@ export const PCBViewer = ({
   hideBuiltinToolbar = false,
   onStoreReady,
   allowCanvasPan = true,
+  spotlightComponentId = null,
 }: Props) => {
   const [isInteractionEnabled, setIsInteractionEnabled] = useState(
     !clickToInteractEnabled,
@@ -196,6 +199,7 @@ export const PCBViewer = ({
           />
           <CanvasElementsRenderer
             hideBuiltinToolbar={hideBuiltinToolbar}
+            spotlightComponentId={spotlightComponentId}
             key={refDimensions.width}
             transform={transform}
             setTransform={setTransform}

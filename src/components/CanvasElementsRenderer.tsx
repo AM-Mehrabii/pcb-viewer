@@ -28,6 +28,8 @@ import { MouseElementTracker } from "./MouseElementTracker"
 import { PcbGroupOverlay } from "./PcbGroupOverlay"
 import { RatsNestOverlay } from "./RatsNestOverlay"
 import { ToolbarOverlay } from "./ToolbarOverlay"
+import { SpotlightOverlay } from "./SpotlightOverlay"
+import { PlaceViaOverlay } from "./PlaceViaOverlay"
 import type { ManualEditEvent } from "@tscircuit/props"
 import { useGlobalStore } from "../global-store"
 
@@ -46,10 +48,16 @@ export interface CanvasElementsRendererProps {
   onCreateEditEvent: (event: ManualEditEvent) => void
   onModifyEditEvent: (event: Partial<ManualEditEvent>) => void
   hideBuiltinToolbar?: boolean
+  spotlightComponentId?: string | null
 }
 
 export const CanvasElementsRenderer = (props: CanvasElementsRendererProps) => {
-  const { transform, elements, hideBuiltinToolbar = false } = props
+  const {
+    transform,
+    elements,
+    hideBuiltinToolbar = false,
+    spotlightComponentId = null,
+  } = props
   const { hoveredErrorId, focusedErrorId, isShowingCopperPours } =
     useGlobalStore((state) => ({
       hoveredErrorId: state.hovered_error_id,
@@ -235,14 +243,29 @@ export const CanvasElementsRenderer = (props: CanvasElementsRendererProps) => {
       primitives={primitivesWithoutInteractionMetadata}
       onMouseHoverOverPrimitives={onMouseOverPrimitives}
     >
-      <EditPlacementOverlay
-        disabled={!props.allowEditing}
-        transform={transform}
-        soup={elements}
-        cancelPanDrag={props.cancelPanDrag}
-        onCreateEditEvent={props.onCreateEditEvent}
-        onModifyEditEvent={props.onModifyEditEvent}
-      >
+        <SpotlightOverlay
+          elements={elements}
+          spotlightComponentId={spotlightComponentId}
+          transform={transform}
+          setTransform={props.setTransform}
+          width={props.width}
+          height={props.height}
+        >
+        <EditPlacementOverlay
+          disabled={!props.allowEditing}
+          transform={transform}
+          soup={elements}
+          cancelPanDrag={props.cancelPanDrag}
+          onCreateEditEvent={props.onCreateEditEvent}
+          onModifyEditEvent={props.onModifyEditEvent}
+        >
+        <PlaceViaOverlay
+          transform={transform}
+          soup={elements}
+          disabled={!props.allowEditing}
+          cancelPanDrag={props.cancelPanDrag}
+          onCreateEditEvent={props.onCreateEditEvent}
+        >
         <EditTraceHintOverlay
           disabled={!props.allowEditing}
           transform={transform}
@@ -321,7 +344,9 @@ export const CanvasElementsRenderer = (props: CanvasElementsRendererProps) => {
             )}
           </DimensionOverlay>
         </EditTraceHintOverlay>
+      </PlaceViaOverlay>
       </EditPlacementOverlay>
+      </SpotlightOverlay>
     </MouseElementTracker>
   )
 }

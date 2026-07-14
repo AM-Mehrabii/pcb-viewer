@@ -15,6 +15,9 @@ interface Props {
   onModifyEditEvent: (event: Partial<ManualEditEvent>) => void
 }
 
+const GRID_MM = 0.1
+const snap = (v: number) => Math.round(v / GRID_MM) * GRID_MM
+
 const isInsideOf = (
   pcb_component: PcbComponent,
   point: { x: number; y: number },
@@ -128,14 +131,16 @@ export const EditPlacementOverlay = ({
         onModifyEditEvent({
           edit_event_id: dragState.edit_event_id,
           new_center: {
-            x:
+            x: snap(
               dragState.originalCenter.x +
-              rwMousePoint.x -
-              dragState.dragStart.x,
-            y:
+                rwMousePoint.x -
+                dragState.dragStart.x,
+            ),
+            y: snap(
               dragState.originalCenter.y +
-              rwMousePoint.y -
-              dragState.dragStart.y,
+                rwMousePoint.y -
+                dragState.dragStart.y,
+            ),
           },
         })
       }}
