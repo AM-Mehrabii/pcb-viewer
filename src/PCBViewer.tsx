@@ -18,6 +18,10 @@ import type { PcbToolMode } from "./lib/pcb-tool-mode"
 import { zIndexMap } from "lib/util/z-index-map"
 import { calculateCircuitJsonKey } from "lib/calculate-circuit-json-key"
 import { calculateBoardSizeKey } from "lib/calculate-board-size-key"
+import {
+  applyCustomPcbEditEvents,
+  isCoreCompatibleEditEvent,
+} from "./lib/apply-custom-pcb-edits"
 
 const defaultTransform = compose(translate(400, 300), scale(40, -40))
 
@@ -66,6 +70,7 @@ export const PCBViewer = ({
   const [isInteractionEnabled, setIsInteractionEnabled] = useState(
     !clickToInteractEnabled,
   )
+  const storeRef = useRef<PcbViewerStore | null>(null)
   const [ref, refDimensions] = useMeasure()
   const [transform, setTransformInternal] = useState(defaultTransform)
   const shouldAllowCanvasInteraction = useCallback(
@@ -73,7 +78,22 @@ export const PCBViewer = ({
       const target = event.target
       if (!(target instanceof Element)) return true
 
-      return !target.closest("[data-toolbar-overlay]")
+      if (target.closest("[data-toolbar-overlay]")) return false
+      const s = storeRef.current?.getState()
+      if (!s) return true
+      if (
+        s.in_marquee_mode ||
+        s.in_move_footprint_mode ||
+        s.in_draw_trace_mode ||
+        s.in_draw_via_mode ||
+        s.in_draw_copper_pour_mode ||
+        s.in_draw_keepout_region_mode ||
+        s.in_draw_cutout_mode ||
+        s.in_draw_silkscreen_text_mode
+      ) {
+        return false
+      }
+      return true
     },
     [],
   )
@@ -153,10 +173,12 @@ export const PCBViewer = ({
   }, [circuitJsonKey])
 
   const elements = useMemo(() => {
-    return applyEditEvents({
+    const coreEditEvents = editEvents.filter((e) => isCoreCompatibleEditEvent(e as any))
+    const withCoreEdits = applyEditEvents({
       circuitJson: pcbElmsPreEdit as any,
-      editEvents,
-    })
+      editEvents: coreEditEvents as any,
+    }) as AnyCircuitElement[]
+    return applyCustomPcbEditEvents(withCoreEdits, editEvents as any)
   }, [pcbElmsPreEdit, editEvents])
 
   const onCreateEditEvent = (event: ManualEditEvent) => {
@@ -191,7 +213,10 @@ export const PCBViewer = ({
         <ContextProviders
           initialState={mergedInitialState}
           disablePcbGroups={disablePcbGroups}
-          onStoreReady={onStoreReady}
+          onStoreReady={(store) => {
+            storeRef.current = store
+            onStoreReady?.(store)
+          }}
         >
           <PcbToolModeController
             toolMode={toolMode}

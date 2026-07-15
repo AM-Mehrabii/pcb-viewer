@@ -30,6 +30,7 @@ import { RatsNestOverlay } from "./RatsNestOverlay"
 import { ToolbarOverlay } from "./ToolbarOverlay"
 import { SpotlightOverlay } from "./SpotlightOverlay"
 import { PlaceViaOverlay } from "./PlaceViaOverlay"
+import { EditShapeOverlay } from "./EditShapeOverlay"
 import type { ManualEditEvent } from "@tscircuit/props"
 import { useGlobalStore } from "../global-store"
 
@@ -58,12 +59,11 @@ export const CanvasElementsRenderer = (props: CanvasElementsRendererProps) => {
     hideBuiltinToolbar = false,
     spotlightComponentId = null,
   } = props
-  const { hoveredErrorId, focusedErrorId, isShowingCopperPours } =
-    useGlobalStore((state) => ({
-      hoveredErrorId: state.hovered_error_id,
-      focusedErrorId: state.focused_error_id,
-      isShowingCopperPours: state.is_showing_copper_pours,
-    }))
+  const hoveredErrorId = useGlobalStore((state) => state.hovered_error_id)
+  const focusedErrorId = useGlobalStore((state) => state.focused_error_id)
+  const isShowingCopperPours = useGlobalStore(
+    (state) => state.is_showing_copper_pours,
+  )
   const activeErrorId = focusedErrorId ?? hoveredErrorId
 
   const elementsToRender = useMemo(
@@ -274,6 +274,13 @@ export const CanvasElementsRenderer = (props: CanvasElementsRendererProps) => {
           onCreateEditEvent={props.onCreateEditEvent as any}
           onModifyEditEvent={props.onModifyEditEvent as any}
         >
+        <EditShapeOverlay
+          transform={transform}
+          soup={elements}
+          disabled={!props.allowEditing}
+          cancelPanDrag={props.cancelPanDrag}
+          onCreateEditEvent={props.onCreateEditEvent as any}
+        >
           <DimensionOverlay
             transform={transform!}
             focusOnHover={props.focusOnHover}
@@ -343,6 +350,7 @@ export const CanvasElementsRenderer = (props: CanvasElementsRendererProps) => {
               </ToolbarOverlay>
             )}
           </DimensionOverlay>
+        </EditShapeOverlay>
         </EditTraceHintOverlay>
       </PlaceViaOverlay>
       </EditPlacementOverlay>

@@ -34,6 +34,10 @@ export const PlaceViaOverlay = ({
           x: e.clientX - rect.left,
           y: e.clientY - rect.top,
         })
+        const viaLayers =
+          selectedLayer === "bottom"
+            ? (["bottom", "top"] as const)
+            : (["top", "bottom"] as const)
         cancelPanDrag()
         onCreateEditEvent({
           edit_event_id: crypto.randomUUID(),
@@ -41,9 +45,9 @@ export const PlaceViaOverlay = ({
           pcb_edit_event_type: "add_via",
           x: point.x,
           y: point.y,
-          layers: [selectedLayer],
-          outer_diameter: 0.6,
-          hole_diameter: 0.3,
+          layers: viaLayers,
+          outer_diameter: 0.9,
+          hole_diameter: 0.45,
           created_at: Date.now(),
         } as ManualEditEvent)
       }}

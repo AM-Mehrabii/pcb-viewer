@@ -199,6 +199,7 @@ export const EditTraceHintOverlay = ({
                 originalCenter: { x: pcb_port.x, y: pcb_port.y },
                 dragEnd: rwMousePoint,
                 editEvent: {
+                  edit_event_type: "edit_pcb_trace_hint",
                   pcb_edit_event_type: "edit_trace_hint",
                   pcb_port_id: e.pcb_port_id!,
                   pcb_trace_hint_id: Math.random().toString(),

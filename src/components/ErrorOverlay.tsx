@@ -75,13 +75,9 @@ export const ErrorOverlay = ({
 }: Props) => {
   const containerRef = useRef<HTMLDivElement | null>(null)
 
-  const { isShowingDRCErrors, hoveredErrorId, focusedErrorId } = useGlobalStore(
-    (state) => ({
-      isShowingDRCErrors: state.is_showing_drc_errors,
-      hoveredErrorId: state.hovered_error_id,
-      focusedErrorId: state.focused_error_id,
-    }),
-  )
+  const isShowingDRCErrors = useGlobalStore((state) => state.is_showing_drc_errors)
+  const hoveredErrorId = useGlobalStore((state) => state.hovered_error_id)
+  const focusedErrorId = useGlobalStore((state) => state.focused_error_id)
   const activeErrorId = focusedErrorId ?? hoveredErrorId
 
   if (!elements) {

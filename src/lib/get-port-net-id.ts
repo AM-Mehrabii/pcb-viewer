@@ -1,5 +1,5 @@
 import type { AnyCircuitElement } from "circuit-json"
-import { su } from "@tscircuit/core"
+import { su } from "@tscircuit/circuit-json-util"
 
 export function getPortNetId(
   soup: AnyCircuitElement[],

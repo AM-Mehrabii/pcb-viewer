@@ -19,9 +19,14 @@ export interface State {
   pcb_viewer_id: string
 
   in_edit_mode: boolean
+  in_marquee_mode: boolean
   in_move_footprint_mode: boolean
   in_draw_trace_mode: boolean
   in_draw_via_mode: boolean
+  in_draw_copper_pour_mode: boolean
+  in_draw_keepout_region_mode: boolean
+  in_draw_cutout_mode: boolean
+  in_draw_silkscreen_text_mode: boolean
   is_mouse_over_container: boolean
   is_moving_component: boolean
   is_drawing_trace: boolean
@@ -43,7 +48,18 @@ export interface State {
   focused_error_id: string | null
 
   selectLayer: (layer: LayerRef) => void
-  setEditMode: (mode: "off" | "move_footprint" | "draw_trace" | "draw_via",) => void
+  setEditMode: (
+    mode:
+      | "off"
+      | "marquee"
+      | "move_footprint"
+      | "draw_trace"
+      | "draw_via"
+      | "draw_copper_pour"
+      | "draw_keepout_region"
+      | "draw_cutout"
+      | "draw_silkscreen_text",
+  ) => void
   setIsMovingComponent: (is_moving: boolean) => void
   setIsDrawingTrace: (is_drawing: boolean) => void
   setIsShowingRatsNest: (is_showing: boolean) => void
@@ -82,9 +98,14 @@ export const createStore = (
         pcb_viewer_id: `pcb_viewer_${Math.random().toString().slice(2, 10)}`,
 
         in_edit_mode: false,
+        in_marquee_mode: false,
         in_move_footprint_mode: false,
         in_draw_trace_mode: false,
         in_draw_via_mode: false,
+        in_draw_copper_pour_mode: false,
+        in_draw_keepout_region_mode: false,
+        in_draw_cutout_mode: false,
+        in_draw_silkscreen_text_mode: false,
 
         is_moving_component: false,
         is_drawing_trace: false,
@@ -136,9 +157,14 @@ export const createStore = (
         setEditMode: (mode) =>
           set({
             in_edit_mode: mode !== "off",
+            in_marquee_mode: mode === "marquee",
             in_move_footprint_mode: mode === "move_footprint",
             in_draw_trace_mode: mode === "draw_trace",
             in_draw_via_mode: mode === "draw_via",
+            in_draw_copper_pour_mode: mode === "draw_copper_pour",
+            in_draw_keepout_region_mode: mode === "draw_keepout_region",
+            in_draw_cutout_mode: mode === "draw_cutout",
+            in_draw_silkscreen_text_mode: mode === "draw_silkscreen_text",
             is_moving_component: false,
             is_drawing_trace: false,
           }),
