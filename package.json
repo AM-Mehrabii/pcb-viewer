@@ -8,6 +8,7 @@
   "scripts": {
     "start": "cosmos",
     "build": "tsup ./src/index.tsx --platform browser --external @tscircuit/core --dts --sourcemap --format esm --outDir dist",
+    "prepare": "pnpm build",
     "yalc": "npm run build && yalc push",
     "format": "biome format . --write",
     "format:check": "biome format .",
