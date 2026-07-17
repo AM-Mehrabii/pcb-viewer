@@ -47,6 +47,12 @@ type Props = {
   allowCanvasPan?: boolean
   /** Pan/zoom + highlight this pcb_component_id (from host find panel). */
   spotlightComponentId?: string | null
+  /** Fired when a footprint is clicked (omit when unused). */
+  onPcbComponentClicked?: (options: {
+    pcbComponentId: string
+    sourceComponentId?: string
+    event: MouseEvent
+  }) => void
 }
 
 export const PCBViewer = ({
@@ -66,6 +72,7 @@ export const PCBViewer = ({
   onStoreReady,
   allowCanvasPan = true,
   spotlightComponentId = null,
+  onPcbComponentClicked,
 }: Props) => {
   const [isInteractionEnabled, setIsInteractionEnabled] = useState(
     !clickToInteractEnabled,
@@ -225,6 +232,7 @@ export const PCBViewer = ({
           <CanvasElementsRenderer
             hideBuiltinToolbar={hideBuiltinToolbar}
             spotlightComponentId={spotlightComponentId}
+            onPcbComponentClicked={onPcbComponentClicked}
             key={refDimensions.width}
             transform={transform}
             setTransform={setTransform}

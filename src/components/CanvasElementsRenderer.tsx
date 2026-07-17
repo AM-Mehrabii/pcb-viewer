@@ -29,6 +29,10 @@ import { PcbGroupOverlay } from "./PcbGroupOverlay"
 import { RatsNestOverlay } from "./RatsNestOverlay"
 import { ToolbarOverlay } from "./ToolbarOverlay"
 import { SpotlightOverlay } from "./SpotlightOverlay"
+import {
+  PcbComponentClickOverlay,
+  type PcbComponentClickOptions,
+} from "./PcbComponentClickOverlay"
 import { PlaceViaOverlay } from "./PlaceViaOverlay"
 import { EditShapeOverlay } from "./EditShapeOverlay"
 import type { ManualEditEvent } from "@tscircuit/props"
@@ -50,6 +54,7 @@ export interface CanvasElementsRendererProps {
   onModifyEditEvent: (event: Partial<ManualEditEvent>) => void
   hideBuiltinToolbar?: boolean
   spotlightComponentId?: string | null
+  onPcbComponentClicked?: (options: PcbComponentClickOptions) => void
 }
 
 export const CanvasElementsRenderer = (props: CanvasElementsRendererProps) => {
@@ -58,6 +63,7 @@ export const CanvasElementsRenderer = (props: CanvasElementsRendererProps) => {
     elements,
     hideBuiltinToolbar = false,
     spotlightComponentId = null,
+    onPcbComponentClicked,
   } = props
   const hoveredErrorId = useGlobalStore((state) => state.hovered_error_id)
   const focusedErrorId = useGlobalStore((state) => state.focused_error_id)
@@ -355,6 +361,13 @@ export const CanvasElementsRenderer = (props: CanvasElementsRendererProps) => {
       </PlaceViaOverlay>
       </EditPlacementOverlay>
       </SpotlightOverlay>
+      {onPcbComponentClicked ? (
+        <PcbComponentClickOverlay
+          transform={transform}
+          elements={elements}
+          onPcbComponentClicked={onPcbComponentClicked}
+        />
+      ) : null}
     </MouseElementTracker>
   )
 }

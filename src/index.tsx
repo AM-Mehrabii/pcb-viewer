@@ -1,5 +1,6 @@
 export * from "./PCBViewer"
 export { CanvasElementsRenderer } from "./components/CanvasElementsRenderer"
+export type { PcbComponentClickOptions } from "./components/PcbComponentClickOverlay"
 export type { PcbViewerStore, PcbViewerState } from "./components/ContextProviders"
 export type { PcbToolMode } from "./lib/pcb-tool-mode"
 export { PCB_TOOLS, pcbToolModeToEditMode } from "./lib/pcb-tool-mode"
