@@ -28,23 +28,57 @@ const mergeBounds = (a: Bounds | null, b: Bounds | null): Bounds | null => {
   }
 }
 
+const boundsFromCenterSize = (
+  cx: number,
+  cy: number,
+  w: number,
+  h: number,
+): Bounds => ({
+  minX: cx - w / 2,
+  maxX: cx + w / 2,
+  minY: cy - h / 2,
+  maxY: cy + h / 2,
+})
+
 const getElementBounds = (el: AnyCircuitElement): Bounds | null => {
   const e = el as any
-  if (e?.center && typeof e.center.x === "number" && typeof e.center.y === "number") {
-    if (typeof e.width === "number" && typeof e.height === "number") {
-      return {
-        minX: e.center.x - e.width / 2,
-        maxX: e.center.x + e.width / 2,
-        minY: e.center.y - e.height / 2,
-        maxY: e.center.y + e.height / 2,
-      }
+
+  const cx =
+    typeof e?.center?.x === "number"
+      ? e.center.x
+      : typeof e?.x === "number"
+        ? e.x
+        : null
+  const cy =
+    typeof e?.center?.y === "number"
+      ? e.center.y
+      : typeof e?.y === "number"
+        ? e.y
+        : null
+
+  if (cx != null && cy != null) {
+    if (
+      typeof e.width === "number" &&
+      typeof e.height === "number" &&
+      e.width > 0 &&
+      e.height > 0
+    ) {
+      return boundsFromCenterSize(cx, cy, e.width, e.height)
     }
-    if (typeof e.radius === "number") {
+    const radius =
+      typeof e.radius === "number" && e.radius > 0
+        ? e.radius
+        : typeof e.outer_diameter === "number" && e.outer_diameter > 0
+          ? e.outer_diameter / 2
+          : typeof e.hole_diameter === "number" && e.hole_diameter > 0
+            ? e.hole_diameter / 2
+            : null
+    if (radius != null) {
       return {
-        minX: e.center.x - e.radius,
-        maxX: e.center.x + e.radius,
-        minY: e.center.y - e.radius,
-        maxY: e.center.y + e.radius,
+        minX: cx - radius,
+        maxX: cx + radius,
+        minY: cy - radius,
+        maxY: cy + radius,
       }
     }
   }
@@ -80,6 +114,10 @@ const getElementBounds = (el: AnyCircuitElement): Bounds | null => {
     if (Number.isFinite(minX)) return { minX, minY, maxX, maxY }
   }
 
+  if (cx != null && cy != null) {
+    return boundsFromCenterSize(cx, cy, 1.2, 1.2)
+  }
+
   return null
 }
 
@@ -93,18 +131,22 @@ export const SpotlightOverlay = ({
   children,
 }: Props) => {
   const zoomedForSpotlightRef = useRef<string | null>(null)
+  const zoomedForElementsRef = useRef<AnyCircuitElement[] | null>(null)
+
   const target = useMemo(() => {
     if (!spotlightComponentId) return null
     const component = elements.find(
       (el) =>
         el.type === "pcb_component" &&
         el.pcb_component_id === spotlightComponentId,
-    ) as (AnyCircuitElement & {
-      center?: { x: number; y: number }
-      width?: number
-      height?: number
-      pcb_component_id?: string
-    }) | null
+    ) as
+      | (AnyCircuitElement & {
+          center?: { x: number; y: number }
+          width?: number
+          height?: number
+          pcb_component_id?: string
+        })
+      | undefined
 
     const related = elements.filter(
       (el) => (el as any)?.pcb_component_id === spotlightComponentId,
@@ -160,8 +202,22 @@ export const SpotlightOverlay = ({
   const holeBottom = Math.min(height, screenCenter ? screenCenter.y + targetScreenRadius : height)
 
   useEffect(() => {
+    if (!spotlightComponentId) {
+      zoomedForSpotlightRef.current = null
+      zoomedForElementsRef.current = null
+    }
+  }, [spotlightComponentId])
+
+  useEffect(() => {
     if (!target?.center || !transform || !setTransform) return
+    if (!spotlightComponentId) return
     if (width < 120 || height < 120) return
+
+    if (zoomedForElementsRef.current !== elements) {
+      zoomedForSpotlightRef.current = null
+      zoomedForElementsRef.current = elements
+    }
+
     if (zoomedForSpotlightRef.current === spotlightComponentId) return
 
     const readableRadiusPx = 92
@@ -199,9 +255,9 @@ export const SpotlightOverlay = ({
       f: nextF,
     }
     const nextScale = Math.hypot(next.a, next.b)
-    if (shouldZoomIn && !(nextScale > currentScale)) return
+    if (shouldZoomIn && zoomFactor > 1 && !(nextScale > currentScale)) return
 
-    zoomedForSpotlightRef.current = spotlightComponentId ?? null
+    zoomedForSpotlightRef.current = spotlightComponentId
     setTransform(next)
   }, [
     target,
@@ -211,13 +267,8 @@ export const SpotlightOverlay = ({
     height,
     targetScreenRadius,
     spotlightComponentId,
+    elements,
   ])
-
-  useEffect(() => {
-    if (!spotlightComponentId) {
-      zoomedForSpotlightRef.current = null
-    }
-  }, [spotlightComponentId])
 
   return (
     <div style={{ position: "relative", overflow: "hidden" }}>
@@ -232,7 +283,7 @@ export const SpotlightOverlay = ({
               width,
               height: holeTop,
               pointerEvents: "none",
-              zIndex: 19,
+              zIndex: 40,
               background: "rgba(2, 6, 23, 0.42)",
               backdropFilter: "blur(7px) saturate(90%)",
               WebkitBackdropFilter: "blur(7px) saturate(90%)",
@@ -246,7 +297,7 @@ export const SpotlightOverlay = ({
               width,
               height: Math.max(0, height - holeBottom),
               pointerEvents: "none",
-              zIndex: 19,
+              zIndex: 40,
               background: "rgba(2, 6, 23, 0.42)",
               backdropFilter: "blur(7px) saturate(90%)",
               WebkitBackdropFilter: "blur(7px) saturate(90%)",
@@ -260,7 +311,7 @@ export const SpotlightOverlay = ({
               width: holeLeft,
               height: Math.max(0, holeBottom - holeTop),
               pointerEvents: "none",
-              zIndex: 19,
+              zIndex: 40,
               background: "rgba(2, 6, 23, 0.42)",
               backdropFilter: "blur(7px) saturate(90%)",
               WebkitBackdropFilter: "blur(7px) saturate(90%)",
@@ -274,7 +325,7 @@ export const SpotlightOverlay = ({
               width: Math.max(0, width - holeRight),
               height: Math.max(0, holeBottom - holeTop),
               pointerEvents: "none",
-              zIndex: 19,
+              zIndex: 40,
               background: "rgba(2, 6, 23, 0.42)",
               backdropFilter: "blur(7px) saturate(90%)",
               WebkitBackdropFilter: "blur(7px) saturate(90%)",
@@ -294,7 +345,7 @@ export const SpotlightOverlay = ({
               boxShadow: "0 0 45px rgba(255, 255, 255, 0.22)",
               opacity: 0.92,
               transition: "opacity 260ms ease, transform 260ms ease",
-              zIndex: 20,
+              zIndex: 41,
             }}
           />
         </>
