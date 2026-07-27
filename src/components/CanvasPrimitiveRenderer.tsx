@@ -20,9 +20,9 @@ import { drawPcbViaElementsForLayer } from "lib/draw-via"
 import { drawCourtyardElementsForLayer } from "lib/draw-courtyard"
 import type { GridConfig, Primitive } from "lib/types"
 import React, { useEffect, useMemo, useRef } from "react"
-import { SuperGrid, toMMSI } from "react-supergrid"
 import type { Matrix } from "transformation-matrix"
 import { useGlobalStore } from "../global-store"
+import { PcbCoordinateOverlay } from "./PcbCoordinateOverlay"
 
 interface Props {
   primitives: Primitive[]
@@ -452,16 +452,7 @@ export const CanvasPrimitiveRenderer = ({
         position: "relative",
       }}
     >
-      <SuperGrid
-        textColor="rgba(0,255,0,0.8)"
-        majorColor="rgba(0,255,0,0.4)"
-        minorColor="rgba(0,255,0,0.2)"
-        screenSpaceCellSize={200}
-        width={width}
-        height={height}
-        transform={transform!}
-        stringifyCoord={(x, y, z) => `${toMMSI(x, z)}, ${toMMSI(y, z)}`}
-      />
+      <PcbCoordinateOverlay width={width} height={height} transform={transform} />
       {orderedLayers
         .filter((layer) => {
           if (!isShowingSolderMask && layer.includes("soldermask")) return false
