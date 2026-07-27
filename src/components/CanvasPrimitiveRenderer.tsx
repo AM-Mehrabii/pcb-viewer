@@ -19,7 +19,7 @@ import { drawSilkscreenElementsForLayer } from "lib/draw-silkscreen"
 import { drawPcbViaElementsForLayer } from "lib/draw-via"
 import { drawCourtyardElementsForLayer } from "lib/draw-courtyard"
 import type { GridConfig, Primitive } from "lib/types"
-import React, { useEffect, useRef } from "react"
+import React, { useEffect, useMemo, useRef } from "react"
 import { SuperGrid, toMMSI } from "react-supergrid"
 import type { Matrix } from "transformation-matrix"
 import { useGlobalStore } from "../global-store"
@@ -33,6 +33,18 @@ interface Props {
   width?: number
   height?: number
 }
+
+// Altium-style gray workspace; turns black when every copper layer is hidden,
+// so the bare board reads as a solid black shape.
+const WORKSPACE_GRAY = "rgb(58, 58, 58)"
+const WORKSPACE_BLACK = "rgb(0, 0, 0)"
+
+// Copper element types that only survive filtering while their layer is shown.
+const COPPER_ELEMENT_TYPES = new Set([
+  "pcb_smtpad",
+  "pcb_trace",
+  "pcb_copper_pour",
+])
 
 const orderedLayers = [
   "board",
@@ -77,6 +89,12 @@ export const CanvasPrimitiveRenderer = ({
   )
   const isShowingCourtyards = useGlobalStore((s) => s.is_showing_courtyards)
   const isShowingSilkscreen = useGlobalStore((s) => s.is_showing_silkscreen)
+
+  const hasVisibleCopper = useMemo(
+    () => elements.some((el) => COPPER_ELEMENT_TYPES.has(el.type)),
+    [elements],
+  )
+  const backgroundColor = hasVisibleCopper ? WORKSPACE_GRAY : WORKSPACE_BLACK
 
   useEffect(() => {
     if (!canvasRefs.current) return
@@ -428,7 +446,7 @@ export const CanvasPrimitiveRenderer = ({
   return (
     <div
       style={{
-        backgroundColor: "black",
+        backgroundColor,
         width,
         height,
         position: "relative",
