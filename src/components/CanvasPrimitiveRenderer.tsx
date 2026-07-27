@@ -23,6 +23,7 @@ import React, { useEffect, useMemo, useRef } from "react"
 import type { Matrix } from "transformation-matrix"
 import { useGlobalStore } from "../global-store"
 import { PcbCoordinateOverlay } from "./PcbCoordinateOverlay"
+import { PcbPadLabelOverlay } from "./PcbPadLabelOverlay"
 
 interface Props {
   primitives: Primitive[]
@@ -452,7 +453,11 @@ export const CanvasPrimitiveRenderer = ({
         position: "relative",
       }}
     >
-      <PcbCoordinateOverlay width={width} height={height} transform={transform} />
+      <PcbCoordinateOverlay
+        width={width}
+        height={height}
+        transform={transform}
+      />
       {orderedLayers
         .filter((layer) => {
           if (!isShowingSolderMask && layer.includes("soldermask")) return false
@@ -484,6 +489,12 @@ export const CanvasPrimitiveRenderer = ({
             height={height}
           />
         ))}
+      <PcbPadLabelOverlay
+        width={width}
+        height={height}
+        transform={transform}
+        elements={elements}
+      />
     </div>
   )
 }
