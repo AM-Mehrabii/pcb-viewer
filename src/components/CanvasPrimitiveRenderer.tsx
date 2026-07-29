@@ -4,6 +4,7 @@ import { drawCopperPourElementsForLayer } from "lib/draw-copper-pour"
 import { drawFabricationNoteElementsForLayer } from "lib/draw-fabrication-note"
 import { drawGrid } from "lib/draw-grid"
 import { drawPcbHoleElementsForLayer } from "lib/draw-hole"
+import { drawBoardBackdrop } from "lib/draw-board-backdrop"
 import { drawPcbBoardElements } from "lib/draw-pcb-board"
 import { drawPcbCopperTextElementsForLayer } from "lib/draw-pcb-copper-text"
 import { drawPcbCutoutElementsForLayer } from "lib/draw-pcb-cutout"
@@ -19,7 +20,7 @@ import { drawSilkscreenElementsForLayer } from "lib/draw-silkscreen"
 import { drawPcbViaElementsForLayer } from "lib/draw-via"
 import { drawCourtyardElementsForLayer } from "lib/draw-courtyard"
 import type { GridConfig, Primitive } from "lib/types"
-import React, { useEffect, useMemo, useRef } from "react"
+import React, { useEffect, useRef } from "react"
 import type { Matrix } from "transformation-matrix"
 import { useGlobalStore } from "../global-store"
 import { PcbCoordinateOverlay } from "./PcbCoordinateOverlay"
@@ -35,17 +36,9 @@ interface Props {
   height?: number
 }
 
-// Altium-style gray workspace; turns black when every copper layer is hidden,
-// so the bare board reads as a solid black shape.
+// Altium-style gray workspace behind the board. The board itself gets a solid
+// black backdrop (drawBoardBackdrop) so it reads black even with all layers off.
 const WORKSPACE_GRAY = "rgb(58, 58, 58)"
-const WORKSPACE_BLACK = "rgb(0, 0, 0)"
-
-// Copper element types that only survive filtering while their layer is shown.
-const COPPER_ELEMENT_TYPES = new Set([
-  "pcb_smtpad",
-  "pcb_trace",
-  "pcb_copper_pour",
-])
 
 const orderedLayers = [
   "board",
@@ -90,12 +83,6 @@ export const CanvasPrimitiveRenderer = ({
   )
   const isShowingCourtyards = useGlobalStore((s) => s.is_showing_courtyards)
   const isShowingSilkscreen = useGlobalStore((s) => s.is_showing_silkscreen)
-
-  const hasVisibleCopper = useMemo(
-    () => elements.some((el) => COPPER_ELEMENT_TYPES.has(el.type)),
-    [elements],
-  )
-  const backgroundColor = hasVisibleCopper ? WORKSPACE_GRAY : WORKSPACE_BLACK
 
   useEffect(() => {
     if (!canvasRefs.current) return
@@ -388,6 +375,12 @@ export const CanvasPrimitiveRenderer = ({
       // Draw board outline using circuit-to-canvas
       const boardCanvas = canvasRefs.current.board
       if (boardCanvas) {
+        // Solid black board backdrop, beneath the outline and every layer.
+        drawBoardBackdrop({
+          canvas: boardCanvas,
+          elements,
+          realToCanvasMat: transform,
+        })
         drawPcbPanelElements({
           canvas: boardCanvas,
           elements,
@@ -447,7 +440,7 @@ export const CanvasPrimitiveRenderer = ({
   return (
     <div
       style={{
-        backgroundColor,
+        backgroundColor: WORKSPACE_GRAY,
         width,
         height,
         position: "relative",
@@ -457,6 +450,7 @@ export const CanvasPrimitiveRenderer = ({
         width={width}
         height={height}
         transform={transform}
+        elements={elements}
       />
       {orderedLayers
         .filter((layer) => {
