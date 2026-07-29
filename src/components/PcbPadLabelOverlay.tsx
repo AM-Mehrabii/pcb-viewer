@@ -20,7 +20,8 @@ const NET_NAME_FONT = "8px sans-serif"
 type LookupMaps = {
   pcbPort: Map<string, { source_port_id?: string }>
   sourcePort: Map<string, { pin_number?: number; name?: string }>
-  sourceNet: Map<string, { name?: string }>
+  // source_port_id -> net name, resolved through source_trace connectivity.
+  netByPort: Map<string, string>
 }
 
 function padNumberFor(
@@ -45,20 +46,9 @@ function netNameFor(
   pcbPortId: string | undefined,
 ): string | null {
   if (!pcbPortId) return null
-  const pcbPort = maps.pcbPort.get(pcbPortId) as
-    | { source_port_id?: string; connected_source_net_ids?: string[] }
-    | undefined
-  const netId =
-    pcbPort?.connected_source_net_ids?.[0] ??
-    (pcbPort?.source_port_id
-      ? (
-          maps.sourcePort.get(pcbPort.source_port_id) as
-            | { source_net_id?: string }
-            | undefined
-        )?.source_net_id
-      : undefined)
-  if (!netId) return null
-  return maps.sourceNet.get(netId)?.name ?? null
+  const sourcePortId = maps.pcbPort.get(pcbPortId)?.source_port_id
+  if (!sourcePortId) return null
+  return maps.netByPort.get(sourcePortId) ?? null
 }
 
 /**
@@ -77,12 +67,26 @@ export const PcbPadLabelOverlay = ({
     const pcbPort = new Map<string, { source_port_id?: string }>()
     const sourcePort = new Map<string, { pin_number?: number; name?: string }>()
     const sourceNet = new Map<string, { name?: string }>()
+    const traces: { ports: string[]; netId?: string }[] = []
     for (const el of elements) {
       if (el.type === "pcb_port") pcbPort.set(el.pcb_port_id, el)
       else if (el.type === "source_port") sourcePort.set(el.source_port_id, el)
       else if (el.type === "source_net") sourceNet.set(el.source_net_id, el)
+      else if (el.type === "source_trace") {
+        traces.push({
+          ports: el.connected_source_port_ids ?? [],
+          netId: el.connected_source_net_ids?.[0],
+        })
+      }
     }
-    return { pcbPort, sourcePort, sourceNet }
+    // A net's name reaches a port through the source_trace that connects them.
+    const netByPort = new Map<string, string>()
+    for (const { ports, netId } of traces) {
+      const name = netId ? sourceNet.get(netId)?.name : undefined
+      if (!name) continue
+      for (const portId of ports) netByPort.set(portId, name)
+    }
+    return { pcbPort, sourcePort, netByPort }
   }, [elements])
 
   const pads = useMemo(
