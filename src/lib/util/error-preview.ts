@@ -391,10 +391,11 @@ export const createTransformForBounds = ({
     x: (bounds.minX + bounds.maxX) / 2,
     y: (bounds.minY + bounds.maxY) / 2,
   }
-  const targetWidth = Math.max(bounds.maxX - bounds.minX, 0.8) + 1.4
-  const targetHeight = Math.max(bounds.maxY - bounds.minY, 0.8) + 1.4
+  // Generous padding + lower scale so DRC error focus keeps surrounding context.
+  const targetWidth = Math.max(bounds.maxX - bounds.minX, 0.8) + 18
+  const targetHeight = Math.max(bounds.maxY - bounds.minY, 0.8) + 18
   const scaleFactor =
-    Math.min(width / targetWidth, height / targetHeight, 240) * 0.92
+    Math.min(width / targetWidth, height / targetHeight, 240) * 0.18
 
   return compose(
     translate(width / 2, height / 2),

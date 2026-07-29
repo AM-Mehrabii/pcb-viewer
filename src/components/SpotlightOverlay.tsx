@@ -4,6 +4,7 @@ import {
   applyToPoint,
   type Matrix,
 } from "transformation-matrix"
+import { useGlobalStore } from "../global-store"
 
 interface Props {
   elements: AnyCircuitElement[]
@@ -208,6 +209,8 @@ export const SpotlightOverlay = ({
     }
   }, [spotlightComponentId])
 
+  const focusedErrorId = useGlobalStore((state) => state.focused_error_id)
+
   useEffect(() => {
     if (!target?.center || !transform || !setTransform) return
     if (!spotlightComponentId) return
@@ -219,9 +222,11 @@ export const SpotlightOverlay = ({
     }
 
     if (zoomedForSpotlightRef.current === spotlightComponentId) return
+    // Error focus already framed the camera — keep the hole, skip a second zoom-in.
+    if (focusedErrorId) return
 
-    const readableRadiusPx = 92
-    const minReadableScale = 12
+    const readableRadiusPx = 16
+    const minReadableScale = 2
     const currentScale = Math.hypot(transform.a, transform.b)
     const shouldZoomIn =
       targetScreenRadius < readableRadiusPx || currentScale < minReadableScale
@@ -268,6 +273,7 @@ export const SpotlightOverlay = ({
     targetScreenRadius,
     spotlightComponentId,
     elements,
+    focusedErrorId,
   ])
 
   return (
