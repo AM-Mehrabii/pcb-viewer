@@ -91,6 +91,7 @@ export const PCBViewer = ({
       if (
         s.in_marquee_mode ||
         s.in_move_footprint_mode ||
+        s.in_move_track_mode ||
         s.in_draw_trace_mode ||
         s.in_draw_via_mode ||
         s.in_draw_copper_pour_mode ||

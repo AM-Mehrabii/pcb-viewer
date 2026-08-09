@@ -23,6 +23,7 @@ import { WarningGraphicsOverlay } from "./WarningGraphicsOverlay"
 import { type BoundsSelection, DimensionOverlay } from "./DimensionOverlay"
 import { EditPlacementOverlay } from "./EditPlacementOverlay"
 import { EditTraceHintOverlay } from "./EditTraceHintOverlay"
+import { EditTrackMoveOverlay } from "./EditTrackMoveOverlay"
 import { ErrorOverlay } from "./ErrorOverlay"
 import { MouseElementTracker } from "./MouseElementTracker"
 import { PcbGroupOverlay } from "./PcbGroupOverlay"
@@ -265,6 +266,14 @@ export const CanvasElementsRenderer = (props: CanvasElementsRendererProps) => {
           onCreateEditEvent={props.onCreateEditEvent}
           onModifyEditEvent={props.onModifyEditEvent}
         >
+        <EditTrackMoveOverlay
+          disabled={!props.allowEditing}
+          transform={transform}
+          soup={elements}
+          cancelPanDrag={props.cancelPanDrag}
+          onCreateEditEvent={props.onCreateEditEvent as any}
+          onModifyEditEvent={props.onModifyEditEvent as any}
+        >
         <PlaceViaOverlay
           transform={transform}
           soup={elements}
@@ -359,6 +368,7 @@ export const CanvasElementsRenderer = (props: CanvasElementsRendererProps) => {
         </EditShapeOverlay>
         </EditTraceHintOverlay>
       </PlaceViaOverlay>
+        </EditTrackMoveOverlay>
       </EditPlacementOverlay>
       </SpotlightOverlay>
       {onPcbComponentClicked ? (

@@ -3,6 +3,7 @@ export type PcbToolMode =
   | "select"
   | "marquee"
   | "move_footprint"
+  | "move_track"
   | "draw_trace"
   | "draw_via"
   | "draw_copper_pour"
@@ -14,6 +15,7 @@ export type PcbInternalEditMode =
   | "off"
   | "marquee"
   | "move_footprint"
+  | "move_track"
   | "draw_trace"
   | "draw_via"
   | "draw_copper_pour"
@@ -33,6 +35,7 @@ export const PCB_TOOLS: Record<PcbToolMode, PcbToolDefinition> = {
   select: { id: "select", enabled: true, shortcut: "Shift+S" },
   marquee: { id: "marquee", enabled: true, shortcut: "Shift+M" },
   move_footprint: { id: "move_footprint", enabled: true, shortcut: "Shift+G" },
+  move_track: { id: "move_track", enabled: true, shortcut: "Shift+R" },
   draw_trace: { id: "draw_trace", enabled: true, shortcut: "Shift+T" },
   draw_via: { id: "draw_via", enabled: true, shortcut: "Shift+V" },
   draw_copper_pour: { id: "draw_copper_pour", enabled: true, shortcut: "Shift+P" },
@@ -49,6 +52,8 @@ export function pcbToolModeToEditMode(
       return "marquee"
     case "move_footprint":
       return "move_footprint"
+    case "move_track":
+      return "move_track"
     case "draw_trace":
       return "draw_trace"
     case "draw_via":

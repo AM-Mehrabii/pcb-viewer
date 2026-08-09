@@ -21,6 +21,7 @@ export interface State {
   in_edit_mode: boolean
   in_marquee_mode: boolean
   in_move_footprint_mode: boolean
+  in_move_track_mode: boolean
   in_draw_trace_mode: boolean
   in_draw_via_mode: boolean
   in_draw_copper_pour_mode: boolean
@@ -29,6 +30,7 @@ export interface State {
   in_draw_silkscreen_text_mode: boolean
   is_mouse_over_container: boolean
   is_moving_component: boolean
+  is_moving_track: boolean
   is_drawing_trace: boolean
   is_showing_autorouting: boolean
   is_showing_drc_errors: boolean
@@ -53,6 +55,7 @@ export interface State {
       | "off"
       | "marquee"
       | "move_footprint"
+      | "move_track"
       | "draw_trace"
       | "draw_via"
       | "draw_copper_pour"
@@ -61,6 +64,7 @@ export interface State {
       | "draw_silkscreen_text",
   ) => void
   setIsMovingComponent: (is_moving: boolean) => void
+  setIsMovingTrack: (is_moving: boolean) => void
   setIsDrawingTrace: (is_drawing: boolean) => void
   setIsShowingRatsNest: (is_showing: boolean) => void
   setIsMouseOverContainer: (is_focused: boolean) => void
@@ -100,6 +104,7 @@ export const createStore = (
         in_edit_mode: false,
         in_marquee_mode: false,
         in_move_footprint_mode: false,
+        in_move_track_mode: false,
         in_draw_trace_mode: false,
         in_draw_via_mode: false,
         in_draw_copper_pour_mode: false,
@@ -108,6 +113,7 @@ export const createStore = (
         in_draw_silkscreen_text_mode: false,
 
         is_moving_component: false,
+        is_moving_track: false,
         is_drawing_trace: false,
         is_mouse_over_container: false,
 
@@ -159,6 +165,7 @@ export const createStore = (
             in_edit_mode: mode !== "off",
             in_marquee_mode: mode === "marquee",
             in_move_footprint_mode: mode === "move_footprint",
+            in_move_track_mode: mode === "move_track",
             in_draw_trace_mode: mode === "draw_trace",
             in_draw_via_mode: mode === "draw_via",
             in_draw_copper_pour_mode: mode === "draw_copper_pour",
@@ -166,12 +173,14 @@ export const createStore = (
             in_draw_cutout_mode: mode === "draw_cutout",
             in_draw_silkscreen_text_mode: mode === "draw_silkscreen_text",
             is_moving_component: false,
+            is_moving_track: false,
             is_drawing_trace: false,
           }),
         setIsShowingRatsNest: (is_showing) =>
           set({ is_showing_rats_nest: is_showing }),
         setIsMovingComponent: (is_moving) =>
           set({ is_moving_component: is_moving }),
+        setIsMovingTrack: (is_moving) => set({ is_moving_track: is_moving }),
         setIsDrawingTrace: (is_drawing) =>
           set({ is_drawing_trace: is_drawing }),
         setIsMouseOverContainer: (is_focused) =>

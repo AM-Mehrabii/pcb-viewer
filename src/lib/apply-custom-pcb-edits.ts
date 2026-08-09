@@ -1,4 +1,4 @@
-import type { AnyCircuitElement } from "circuit-json"
+import type { AnyCircuitElement, PcbTrace } from "circuit-json"
 
 type CustomAddEvent = {
   edit_event_id?: string
@@ -15,6 +15,13 @@ type CustomDeleteEvent = {
   edit_event_type: "delete_pcb_custom_element"
   target_type?: string
   target_id?: string
+}
+
+type CustomTraceMoveEvent = {
+  edit_event_id?: string
+  edit_event_type: "edit_pcb_trace_move"
+  pcb_trace_id: string
+  new_route: PcbTrace["route"]
 }
 
 type UnknownEditEvent = Record<string, any>
@@ -55,8 +62,19 @@ export function applyCustomPcbEditEvents(
   let next = [...elements]
 
   for (const raw of editEvents) {
-    const event = raw as CustomAddEvent | CustomDeleteEvent
+    const event = raw as CustomAddEvent | CustomDeleteEvent | CustomTraceMoveEvent
     if (!event || typeof event !== "object") continue
+
+    if (event.edit_event_type === "edit_pcb_trace_move") {
+      const { pcb_trace_id, new_route } = event as CustomTraceMoveEvent
+      if (!pcb_trace_id || !Array.isArray(new_route)) continue
+      next = next.map((el) => {
+        if (el.type !== "pcb_trace") return el
+        if ((el as PcbTrace).pcb_trace_id !== pcb_trace_id) return el
+        return { ...el, route: new_route.map((seg) => ({ ...seg })) } as PcbTrace
+      })
+      continue
+    }
 
     if (
       event.edit_event_type === "add_pcb_copper_pour" ||
